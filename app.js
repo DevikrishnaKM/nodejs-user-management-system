@@ -1,24 +1,52 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+require('dotenv').config();
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const expressLayouts=require("express-ejs-layouts");
+const session = require('express-session');
+const flash=require('connect-flash');
+const {v4:uuidv4}=require('uuid');
+
+
+
+// Database connection 
+const connectDB = require('./src/config/db');
 
 const authRouter=require('./src/routes/authRoutes');
 const userRouter=require('./src/routes/userRoutes');
 const adminRouter=require('./src/routes/adminRoutes');
 
-var app = express();
+const app = express();
+
+// Connect Database
+connectDB();
+
 
 // view engine setup
+app.use(expressLayouts);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.set('layout','./layouts/userLayout');
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+//session
+app.use(session({
+  secret:uuidv4(),
+  resave:false,
+  saveUninitialized:false,
+  cookie:{
+    maxAge:4*60*60
+  }
+}));
+
+app.use(flash());
 
 app.use('/',authRouter);
 app.use('/',userRouter);
