@@ -3,15 +3,13 @@ const router=express.Router();
 
 //authcontroller
 const authController=require('../controller/authController');
-const { userRegisterValidationRules, validate } = require('../middleware/validationMiddleware');
-const { isAdmin, isUser, isLoggedIn} = require('../middleware/authMiddleware')
 
 //user
 
 router.get('/login', authController.getUserLogin);
 router.get('/register',authController.getUserRegister);
 
-router.get('/login', authController.userLogin);
+router.post('/login', authController.userLogin);
 router.post('/register', authController.userRegister);
 
 

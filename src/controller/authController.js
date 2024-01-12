@@ -75,35 +75,41 @@ module.exports={
 
     const user=await User.findOne({email});
 
-    if(!User){
+    if(!user){
       req.flash("error","User not found");
       res.redirect("/login");
     }else{
+      
       const validPass=await bcrypt.compare(pwd,user.password);
       if(!validPass){
         req.flash('error','Invalid Credentials');
         res.redirect("/login");
       }else{
-        const maxAge = 3 * 60 * 60 // 3hr expire
-        const token = jwt.sign(
-          {
-            id: user._id,
-            user,
-            role: 'User'
-          },
-          jwtSecret,
-          {
-            expiresIn: maxAge,
-          }
-        )
-
-        res.cookie("jwt", token, {
-          httpOnly: true,
-          maxAge: maxAge * 1000
-        });
-        req.flash('success','logged in successfully');
-        req.session.user=user;
-        res.redirect('/');
+        try {
+          const maxAge = 3 * 60 * 60 // 3hr expire
+          const token = jwt.sign(
+            {
+              id: user._id,
+              user,
+              role: 'User'
+            },
+            jwtSecret,
+            {
+              expiresIn: maxAge,
+            }
+          )
+  
+          res.cookie("jwt", token, {
+            httpOnly: true,
+            maxAge: maxAge * 1000
+          });
+          req.flash('success','logged in successfully');
+          req.session.user=user;
+          res.redirect('/');
+          
+        } catch (error) {
+          console.log(error);
+        }
       }
     }
   },
@@ -137,7 +143,7 @@ module.exports={
   adminRegister: async (req,res) => {
     const { firstName, lastName, email, pwd, pwdConf } = req.body;
 
-    const isExist = await User.findOne({ email });
+    const isExist = await User.findOne({ email,isAdmin:true });
 
     if (isExist) {
       req.flash("error", "User already exists, Please login");

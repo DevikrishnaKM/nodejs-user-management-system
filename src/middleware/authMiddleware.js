@@ -29,7 +29,7 @@ module.exports = {
         if(req.session && req.session.user){
             next()
         }else {
-            req.flash('error', 'Not Authorized')
+            // req.flash('error', 'Not Authorized')
             res.redirect('/login')
         }
     },
