@@ -38,7 +38,7 @@ module.exports = {
             next()
         }else {
             req.flash('error', 'Not Authorized')
-            res.redirect('/login')
+            res.redirect('/admin/login');
         }
     },
     // isLoggedOut: (req,res,next) => {

@@ -7,6 +7,9 @@ const logger = require('morgan');
 const expressLayouts=require("express-ejs-layouts");
 const session = require('express-session');
 const flash=require('connect-flash');
+const nocache = require("nocache");
+const methodOverride = require("method-override");
+const MongoStore = require("connect-mongo");
 const {v4:uuidv4}=require('uuid');
 
 
@@ -31,8 +34,9 @@ app.set('view engine', 'ejs');
 app.set('layout','./layouts/userLayout');
 
 app.use(logger('dev'));
+app.use(methodOverride("_method"));
+app.use(express.urlencoded({ extended:true}));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -41,12 +45,16 @@ app.use(session({
   secret:uuidv4(),
   resave:false,
   saveUninitialized:false,
-  cookie:{
-    maxAge:4*60*60
-  }
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+  }),
+ 
 }));
 
 app.use(flash());
+
+// nocache for disabling browser caching
+app.use(nocache());
 
 app.use('/',authRouter);
 app.use('/',userRouter);

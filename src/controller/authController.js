@@ -73,7 +73,7 @@ module.exports={
       res.redirect('/login')
     }
 
-    const user=await User.findOne({email});
+    const user=await User.findOne({email,isAdmin:false});
 
     if(!user){
       req.flash("error","User not found");
@@ -188,7 +188,7 @@ module.exports={
       res.redirect('/login')
     }
 
-    const user = await User.findOne({email})
+    const user = await User.findOne({email,isAdmin:true})
 
     if(!user){
       req.flash('error', 'User not found')
@@ -224,4 +224,16 @@ module.exports={
       }
     }
   },
+
+
+  getUserLogout:(req,res)=>{
+    req.flash("success","You have been Logged out.")
+    req.session.destroy();
+    res.redirect("/login");
+  },
+  AdminLogout:(req,res)=>{
+    req.session.destroy();
+    res.redirect("/admin/login");
+  },
+  
 }
