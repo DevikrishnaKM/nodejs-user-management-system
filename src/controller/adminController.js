@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const adminLayout = "./layouts/adminLayout.ejs";
 const User = require('../model/userSchema')
 
@@ -32,6 +33,58 @@ module.exports = {
       error:req.flash('error'),
       layout: adminLayout
     });
+  },
+  getAddUser:async (req,res) => {
+    const locals = {
+      title: 'Add User'
+    }
+
+    res.render('admin/add', {
+      locals,
+      success: req.flash('success'),
+      error: req.flash('error'),
+      layout: adminLayout
+    })
+  },
+  addUser: async (req,res) => {
+    const { firstName, lastName, email, pwd, pwdConf } = req.body;
+
+    const isExist = await User.findOne({ email });
+
+    if (isExist) {
+      req.flash("error", "User already exists");
+      console.log("User already exists");
+      res.redirect("/admin/add-user");
+    }
+
+    if (pwd < 6 && pwdConf < 6) {
+      req.flash("error", "Password is less than 6 character");
+      res.redirect("/admin/add-user");
+    } else {
+      if (pwd === pwdConf) {
+        const hashpwd = await bcrypt.hash(pwd, 12);
+
+        const user = await User.create({
+          firstName,
+          lastName,
+          email,
+          password: hashpwd,
+        });
+
+        if (user) {
+          req.flash("success", "User successfully created!!");
+          res.redirect("/admin");
+        } else {
+          req.flash("error", "User not created");
+          res.redirect("/admin/add-user");
+        }
+      } else {
+        req.flash("error", "Password does not match");
+        console.log("Password does not match");
+        res.redirect("/admin/add-user");
+      }
+    }
+
   },
   /**
    * View Edit 
@@ -87,6 +140,30 @@ module.exports = {
     try {
       await User.deleteOne({ _id: req.params.id });
       res.redirect("/admin");
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  searchUser: async (req,res) => {
+    const locals = {
+      title: "Search Customer Data",
+    };
+  
+    try {
+      let searchTerm = req.body.searchTerm;
+      const searchNoSpecialChar = searchTerm.replace(/[^a-zA-Z0-9 ]/g, "");
+  
+      const user = await User.find({
+        $or: [
+          { firstName: { $regex: new RegExp(searchNoSpecialChar, "i") } },
+          { lastName: { $regex: new RegExp(searchNoSpecialChar, "i") } },
+        ],
+      });
+  
+      res.render("admin/search", {
+        user,
+        locals,
+      });
     } catch (error) {
       console.log(error);
     }
